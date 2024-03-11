@@ -37,7 +37,7 @@ void input_dimensions() {
 /* Функция расчета итоговой цены */
 int get_total(int width, int length, int height) {
     int foundation_cost = width * length * 1000;
-    int cost_of_wals = 2 * (width + length) * 500;
+    int cost_of_wals = 2 * (width + length) * height * 500;
     int roof_cost = (width * length * 700) + height * 100;
 
     return foundation_cost + cost_of_wals + roof_cost;
