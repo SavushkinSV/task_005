@@ -63,7 +63,12 @@ char *get_string() {
         s[(len)++] = c;
         if (len >= size) {
             size *= 2;
-            s = (char *)realloc(s, size * sizeof(char));
+            char *tmp = (char *)realloc(s, size * sizeof(char));
+            if (tmp == NULL) {
+                error_exit();
+            } else {
+                s = tmp;
+            }
         }
         c = getchar();
     }
