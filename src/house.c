@@ -27,7 +27,7 @@ void input_dimensions() {
     if (scanf("%d %d %d %d", &width, &length, &height, &current_price) != 4) {
         error_exit();
     }
-    if (width <= 0 || length <= 0 || height <= 0 || current_price <= 0) {
+    if (width <= 0 || length <= 0 || height <= 0 || current_price < 0) {
         error_exit();
     }
     int total_price = get_total(width, length, height);
