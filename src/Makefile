@@ -2,17 +2,17 @@ CFLAGS=-Werror -Wextra -Wall
 CC=gcc
 FSAN=-fsanitize=leak -fsanitize=address -fsanitize=undefined -fsanitize=unreachable -fno-sanitize-recover -fstack-protector
 
-all: house
+all: house morse
 
 
 house: house.c
-	$(CC) $(CFLAGS)house.c -o ../bin/house
+	$(CC) $(CFLAGS) house.c -o ../bin/house
 
 travel: house.c
-	$(CC) $(CFLAGS)house.c -o ../bin/travel
+	$(CC) $(CFLAGS) house.c -o ../bin/travel
 
-morse: house.c
-	$(CC) $(CFLAGS)house.c -o ../bin/morse
+morse: morse.c
+	$(CC) $(CFLAGS) morse.c -o ../bin/morse
 
 clean:
 	rm -rf *.o *.out
