@@ -8,6 +8,12 @@ all: house
 house: house.c
 	$(CC) $(CFLAGS)house.c -o ../bin/house
 
+travel: house.c
+	$(CC) $(CFLAGS)house.c -o ../bin/travel
+
+morse: house.c
+	$(CC) $(CFLAGS)house.c -o ../bin/morse
+
 clean:
 	rm -rf *.o *.out
 
