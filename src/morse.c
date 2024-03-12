@@ -1,80 +1,53 @@
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#define SIZE_ALPHABET 36
-#define TRANSLATE_STR_MORSE 1
-#define TRANSLATE_MORSE_STR 2
-
-typedef struct {
-    char *morse;
-    char c;
-} Morse_code;
-
-Morse_code morse_translate[] = {
-    {".-", 'a'},    {"-...", 'b'},  {"-.-.", 'c'},  {"-..", 'd'},   {".", 'e'},     {"..-.", 'f'},
-    {"--.", 'g'},   {"....", 'h'},  {"..", 'i'},    {"---.", 'j'},  {"-.-", 'k'},   {".-..", 'l'},
-    {"--", 'm'},    {"-.", 'n'},    {"---", 'o'},   {".-.-", 'p'},  {"--.-", 'q'},  {".-.", 'r'},
-    {"...", 's'},   {"-", 't'},     {"..-", 'u'},   {"...-", 'v'},  {".--", 'w'},   {"-..-", 'x'},
-    {"-.--", 'y'},  {"--..", 'z'},  {".----", '1'}, {"..---", '2'}, {"...--", '3'}, {"....-", '4'},
-    {".....", '5'}, {"-....", '6'}, {"--...", '7'}, {"---..", '8'}, {"----.", '9'}, {"-----", '0'},
-};
-
-void error_exit();
-char *get_string();
-void input_command();
-
-/* Функция очистки буфера от лишних символов */
-void free_buffer() {
-    int ch;
-    while ((ch = getchar()) != ' ' && ch != '\n') {
-    }
-}
-
-void translate_string_to_morse(char *str) {
-    while (*str != '\0') {
-        int count = 0;
-        for (int j = 0; j < SIZE_ALPHABET; j++) {
-            if (tolower(*str) == morse_translate[j].c) {
-                if (!count) printf(" ");
-                printf("%s", morse_translate[j].morse);
-                break;
-            }
-        }
-        str++;
-    }
-}
+#include "morse.h"
 
 int main() {
     input_command();
-
     return EXIT_SUCCESS;
 }
 
-// посимвольное получение динамической строки с пробелами c получением её реальной длины
-char *get_string() {
-    int len = 0;
-    int size = 1;
-    char *s = (char *)malloc(sizeof(char));
+/* Функция ввода команды */
+void input_command() {
+    char line[256] = "";
+    char result_str[256] = "";
 
-    char c = getchar();
-    while (c != '\n') {
-        s[(len)++] = c;
-        if (len >= size) {
-            size *= 2;
-            char *tmp = (char *)realloc(s, size * sizeof(char));
-            if (tmp == NULL) {
+    switch (get_command()) {
+        case (TRANSLATE_LTR_MORSE):
+            get_string(line);
+            if (!translate_letters_to_morse(line, result_str))
+                printf("%s", result_str);
+            else
                 error_exit();
+            break;
+        case (TRANSLATE_MORSE_LTR):
+            get_string(line);
+            if (!translate_morse_to_letters(line, result_str)) {
+                printf("%s", result_str);
             } else {
-                s = tmp;
+                error_exit();
             }
-        }
-        c = getchar();
-    }
+            break;
 
-    s[len] = '\0';
-    return s;
+        default:
+            error_exit();
+            break;
+    }
+}
+
+/* Функция возвращает код введенной команды */
+int get_command() {
+    int command = 0;
+    if (scanf("%d", &command) == 1) {
+        if (command == 1) command = TRANSLATE_LTR_MORSE;
+        if (command == 2) command = TRANSLATE_MORSE_LTR;
+    }
+    free_buffer();
+    return command;
+}
+
+// получение строки с пробелами
+void get_string(char *str) {
+    fgets(str, 256, stdin);
+    str[strlen(str) - 1] = '\0';
 }
 
 /* Функция завершения программы с ошибкой */
@@ -83,23 +56,77 @@ void error_exit() {
     exit(EXIT_FAILURE);
 }
 
-/* Функция ввода команды */
-void input_command() {
-    int command = 0;
-    scanf("%d", &command);
-    switch (command) {
-        case (TRANSLATE_STR_MORSE):
-            free_buffer();
-            char *line = get_string();  // считываем динамическую строку
-            translate_string_to_morse(line);
-            free(line);  // освобождаем динамическую память
-            break;
-        case (TRANSLATE_MORSE_STR):
-            printf("TRANSLATE_MORSE_STR");
-            break;
-
-        default:
-            error_exit();
-            break;
+/* Функция очистки буфера от лишних символов */
+void free_buffer() {
+    int c;
+    while ((c = getchar()) != '\n') {
+        ;
     }
+}
+
+/* Функция перевода строки в азбуку Морзе. Возвращает 0 если нет ошибок*/
+int translate_letters_to_morse(char *str, char *result_str) {
+    int error = 0;
+    int count = 0;
+    while (*str != '\0') {
+        if (*str == ' ') {
+            strcat(result_str, "\t");
+            count = 0;
+        } else {
+            int add_symbol_flag = 0;
+            for (int j = 0; j < SIZE_ALPHABET; j++) {
+                if (toupper(*str) == morse_translate[j].c) {
+                    if (count) strcat(result_str, " ");
+                    strcat(result_str, morse_translate[j].morse);
+                    count++;
+                    add_symbol_flag = 1;
+                    break;
+                }
+            }
+            if (add_symbol_flag == 0) error = 1;
+        }
+        str++;
+    }
+
+    return error;
+}
+
+/* Функция перевода из азбуки Морзе в строку */
+int translate_morse_to_letters(char *str, char *result_str) {
+    int error = 0;
+    while (*str != '\0') {
+        int count = 0;
+        char morse_str[256] = "";
+        while (*str != ' ' && *str != '\t' && *str != '\0') {
+            morse_str[count] = *str;
+            count++;
+            str++;
+        }
+        morse_str[count] = '\0';
+        char c[2] = "";
+        if (!check_symbol(morse_str, c)) {
+            strcat(result_str, c);
+        } else {
+            error++;
+        }
+        if (*str == '\t') strcat(result_str, " ");
+        str++;
+    }
+
+    return error;
+}
+
+/* Проверки строки с алфавитом азбуки Морзе */
+int check_symbol(char *str, char *result) {
+    int error = 1;
+    for (int i = 0; i < SIZE_ALPHABET; i++) {
+        if (!strcmp(str, morse_translate[i].morse)) {
+            result[0] = morse_translate[i].c;
+            result[1] = '\0';
+            error = 0;
+            break;
+        }
+    }
+
+    return error;
 }
