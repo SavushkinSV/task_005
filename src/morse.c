@@ -47,7 +47,10 @@ int get_command() {
 // получение строки с пробелами
 void get_string(char *str) {
     fgets(str, 256, stdin);
-    str[strlen(str) - 1] = '\0';
+    int len = strlen(str);
+    if (str[len] == '\n') {
+        str[len - 1] = '\0';
+    }
 }
 
 /* Функция завершения программы с ошибкой */
